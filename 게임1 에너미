@@ -1,0 +1,186 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class Enemy : MonoBehaviour
+{
+    Rigidbody2D rigid;
+    Animator anim;
+    SpriteRenderer spriteRenderer;
+    public int nextMove;
+    public float moveSpeed = 5f;
+    public float knockbackForce = 5f;
+    public float knockbackDuration = 0.2f;
+    public int maxhp = 30;
+    public int hp = 30; // 기본 hp는 3입니다
+    public float jumpForce = 10f; // 점프 힘
+    public float speedBoostDuration = 1f; // 속도 증가 지속 시간 (초)
+    public float speedBoostMultiplier = 2f; // 속도 증가 배수 
+    public float invincibilityDuration = 2f; // 무적 지속 시간 (초) 
+
+    
+
+
+
+
+    private Rigidbody2D rb;
+    private Animator animator;
+
+
+    void onDamged(Vector2 targetPos)
+    {
+        // Change Layer (Immortal Active)
+        gameObject.layer = 8;
+
+        //View Alpha
+        spriteRenderer.color = new Color(1, 1, 1, 0.4f);
+
+        // Reaction Force
+        int dirc = transform.position.x - targetPos.x > 0 ? 1 : -1;
+        rigid.AddForce(new Vector2(dirc, 1) * 7, ForceMode2D.Impulse);
+        // Animation
+        anim.SetTrigger("doDameged");
+
+        Invoke("OffDamged", 3);
+    }
+    
+
+    
+    
+    public void TakeDamage(int damage)
+    {
+        hp -= 1;
+        
+
+
+        if (hp <= 0)
+        {
+            Die(); // hp가 0 이하이면 Die 함수 호출
+        }
+        else
+        {
+            StartCoroutine(TakeDamage()); // 그렇지 않으면 TakeDamage 코루틴 호출
+        }
+    }
+    private void Knockback(Transform playerTransform)
+    {
+        Vector2 knockbackDirection = (transform.position - playerTransform.position).normalized;
+        GetComponent<Rigidbody2D>().AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+    }
+
+
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+
+
+    void Awake()
+    {
+        rigid = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        Invoke("Think", 5);
+
+
+    }
+
+    
+
+        void FixedUpdate()
+    {
+        //Move Speed
+        rigid.velocity = new Vector2(nextMove, rigid.velocity.y);
+        
+
+        //Platform Check
+        Vector2 frontVec = new Vector2(rigid.position.x + nextMove*0.3f, rigid.position.y);
+        Debug.DrawRay(frontVec, Vector3.down, new Color(0, 1, 0));
+        RaycastHit2D rayHit = Physics2D.Raycast(frontVec, Vector3.down, 1, LayerMask.GetMask("Platform"));
+        if (rayHit.collider == null) {
+            Turn();
+        }
+    }
+    //재귀 함수
+    void Think()
+    {
+        //Set Next Active
+        nextMove = Random.Range(-1, 2);
+
+        
+        //Sprite Animation
+        anim.SetInteger("WalkSpeed", nextMove);
+        
+        //Flip Sprite
+        if(nextMove != 0)
+        spriteRenderer.flipX = nextMove == 1;
+
+        //Recursive
+        float nextThinkTime = Random.Range(2f, 5f);
+        Invoke("Think", nextThinkTime);
+    
+    
+    }
+
+    void Turn()
+    {
+        nextMove *= -1;
+        spriteRenderer.flipX = nextMove == 1;
+
+        CancelInvoke();
+        Invoke("Think", 2);
+
+
+    }
+    
+        private void Die()
+    {
+        Debug.Log("Die");
+        
+        animator.SetTrigger("Dead"); // 죽는 애니메이션 재생
+        
+        rb.velocity = Vector2.zero; // 속도 초기화
+        Destroy(gameObject, 1f); // 1초 후에 객체 파괴
+        
+    }
+    
+
+    private IEnumerator TakeDamage()
+    {
+        
+        animator.SetTrigger("Hurt"); // 맞는 애니메이션 재생
+        rb.velocity = Vector2.up * jumpForce; // 데미지를 받으면 점프
+        StartCoroutine(SpeedBoost()); // 속도 증가 코루틴 호출
+        yield return new WaitForSeconds(invincibilityDuration); // 무적 지속 시간만큼 대기
+        
+        
+    }
+    
+
+    private IEnumerator SpeedBoost()
+    {
+        float originalSpeed = rb.velocity.x; // 원래 속도 저장
+        rb.velocity = new Vector2(originalSpeed * speedBoostMultiplier, rb.velocity.y); // 속도 증가
+        yield return new WaitForSeconds(speedBoostDuration); // 일정 시간 대기
+        rb.velocity = new Vector2(originalSpeed, rb.velocity.y); // 속도 원래대로 복귀
+        StartCoroutine(SpeedBoost());
+        yield break;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
