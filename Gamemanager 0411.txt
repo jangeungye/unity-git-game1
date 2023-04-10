@@ -1,0 +1,45 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Gamemanager : MonoBehaviour
+{
+    public GameObject talkPanel;
+    public Text talkText;
+    public GameObject scanObject;
+    public static Gamemanager Instance { get; private set; } //set 으로 외부에서 값 변경 불가
+    public bool isAction;
+
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    public void Action(GameObject scanObj)
+     {
+        if (isAction)
+        {
+            isAction = false;
+        }
+        else
+        {
+            
+            isAction = true;
+            scanObject = scanObj;
+            talkText.text = "이것의 이름은 " + scanObject.name + "이라고 한다.";
+        }
+
+        talkPanel.SetActive(isAction);
+        
+
+     }
+}
+ 

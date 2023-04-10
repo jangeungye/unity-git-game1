@@ -1,0 +1,21 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+public class Ladder : MonoBehaviour
+{
+    public Collider2D LadderCollider;
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            if (Input.GetAxisRaw("Vertical") < 0f) // Check if player is moving down
+            {
+                Physics2D.IgnoreCollision(collision.GetComponent<Collider2D>(), LadderCollider, false);
+            }
+            else // Otherwise, ignore collision to allow climbing up
+            {
+                Physics2D.IgnoreCollision(collision.GetComponent<Collider2D>(), LadderCollider, true);
+            }
+        }
+    }
+}
