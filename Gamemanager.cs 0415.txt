@@ -1,0 +1,85 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Gamemanager : MonoBehaviour
+{
+    public GameObject talkPanel;
+    public Text talkText;
+    public GameObject scanObject;
+    public static Gamemanager Instance { get; private set; } //set 으로 외부에서 값 변경 불가
+    public bool isAction;
+    public TalkManager talkManager;
+    public int talkIndex;
+    public Image portraitImg; // NPC 대화 시 사용할 초상화 이미지를 표시할 UI Image 컴포넌트를 저장할 변수
+
+    public QuestManager questManager;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        Debug.Log(questManager.CheckQuest()); // 아직 매개변수를 쓰지 않음!
+    }
+    public void Action(GameObject scanObj)
+     {
+        
+            
+            isAction = true;
+            scanObject = scanObj;
+            ObjData objData = scanObject.GetComponent<ObjData>();
+            Talk(objData.Id, objData.IsNpc);
+        
+
+        talkPanel.SetActive(isAction);
+        
+
+     }
+
+    void Talk(int id, bool isNpc)
+    {
+        //Set Talk Data
+
+        int questTalkIndex = questManager.GetQuestTalkIndex(id);
+
+
+        string talkData = talkManager.GetTalk(id + questTalkIndex, talkIndex);
+        //End Talk
+        if(talkData == null)
+        {
+            isAction = false;
+            talkIndex = 0;
+            Debug.Log(questManager.CheckQuest(id)); //체크퀘스트 호출
+            return;
+        }
+        //Continue Talk
+        if (isNpc)
+        {
+            talkText.text = talkData.Split(':')[0];
+            
+            portraitImg.sprite =  talkManager.GetPortrait(id, int.Parse(talkData.Split(':')[1])); // 문자열을 해당 타입으로 변환
+            portraitImg.color = new Color(1, 1, 1, 1);
+        }
+        else
+        {
+            talkText.text = talkData;
+
+            portraitImg.color = new Color(1, 1, 1, 0);
+        }
+        isAction = true;
+        talkIndex++;
+    }
+
+}
+ 
