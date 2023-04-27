@@ -1,0 +1,60 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DamageBox : MonoBehaviour
+{
+
+    public Transform pos;
+    public Vector2 boxSize;
+    
+
+    private float curTime; //쿨타임을 대입할 임시값
+    public float cooltime = 0.5f; //쿨타임 기본값 
+    private float skill1curTime; //스킬1쿨타임을 대입할 임시값
+    public float skill1cooltime = 0.5f; //스킬1쿨타임 기본값 
+    public void Update()
+    {
+        curTime -= 1 * Time.deltaTime;
+        skill1curTime -= 1 * Time.deltaTime;
+    }
+    public void atk()
+    {
+        if(curTime <= 0)
+        {
+            Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
+            foreach (Collider2D collider in collider2Ds)
+            {
+                if(collider.tag == "Monster")
+                {
+                    collider.GetComponent<Monster>().TakeDamage(1);
+                    Debug.Log("TD(1)");                  
+                }
+            }                   
+        }
+        curTime = cooltime;
+    }
+    public void Skill1()
+    {
+        if (skill1curTime <= 0)
+        {
+            Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
+            foreach (Collider2D collider in collider2Ds)
+            {
+                if (collider.tag == "Monster")
+                {
+                    collider.GetComponent<Monster>().TakeDamage(3);
+                    Debug.Log("TD(3)");
+                }
+            }
+        }
+        skill1curTime = skill1cooltime * 2f;
+    }
+
+    private void OnDrawGizmos() 
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireCube(pos.position, boxSize);
+    }
+
+}

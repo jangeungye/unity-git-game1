@@ -1,0 +1,46 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Rogue : MonoBehaviour
+{
+    [SerializeField]
+    Rigidbody2D rb;
+    Portal1 pol;
+    DamageBox db;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        pol = GetComponent<Portal1>();
+        db = GetComponent<DamageBox>();
+        
+    }
+   
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.D))
+        {
+            transform.Translate(Vector2.right * 3 * Time.deltaTime);
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            transform.Translate(Vector2.left * 3 * Time.deltaTime);
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            pol.PortalExcute();
+        }
+        if (Input.GetKey(KeyCode.J))
+        {            
+            db.atk();
+            Debug.Log("J");
+        }
+        if (Input.GetKey(KeyCode.U))
+        {            
+            db.Skill1();
+            Debug.Log("U");
+        }
+    }
+    
+}
